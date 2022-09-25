@@ -46,8 +46,10 @@ logger.addHandler(handler)
 
 
 def send_message(bot, message):
-    """Отправляет сообщение в Telegram чат,
-    определяемый переменной окружения TELEGRAM_CHAT_ID."""
+    """
+    Отправляет сообщение в Telegram чат,
+    определяемый переменной окружения TELEGRAM_CHAT_ID.
+    """
     try:
         bot.send_message(TELEGRAM_CHAT_ID, text=message)
         logger.info('Сообщение отправлено')
@@ -57,9 +59,11 @@ def send_message(bot, message):
 
 
 def get_api_answer(current_timestamp):
-    """Делаем запрос к эндпоинту API-сервиса.
+    """
+    Делаем запрос к эндпоинту API-сервиса.
     В случае успешного запроса возвращает ответ API,
-    преобразовав его из формата JSON к типам данных Python."""
+    преобразовав его из формата JSON к типам данных Python.
+    """
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     response = requests.get(ENDPOINT, headers=HEADERS, params=params)
@@ -71,8 +75,10 @@ def get_api_answer(current_timestamp):
 
 
 def check_response(response):
-    """Проверяет ответ API на корректность. Если ответ API соответствует ожиданиям,
-    то возвращает список домашних работ"""
+    """
+    Проверяет ответ API на корректность. Если ответ API соответствует
+    ожиданиям, то возвращает список домашних работ.
+    """
     if not isinstance(response, dict):
         message = 'Response не является словарем'
         logger.error(message)
@@ -90,9 +96,11 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """Извлекает из информации о конкретной домашней работе статус этой работы.
+    """
+    Извлекает из информации о конкретной домашней работе статус этой работы.
     В случае успеха, функция возвращает подготовленную для отправки в Telegram
-    строку, содержащую один из вердиктов словаря HOMEWORK_STATUSES."""
+    строку, содержащую один из вердиктов словаря HOMEWORK_STATUSES.
+    """
     if 'homework_name' not in homework:
         message = 'homework_name не найден в домашней работе'
         logger.error(message)
@@ -110,15 +118,19 @@ def parse_status(homework):
 
 
 def check_tokens():
-    """Проверяем доступность переменных окружения, которые необходимы
-     для работы программы."""
+    """
+    Проверяем доступность переменных окружения, которые необходимы
+    для работы программы.
+    """
     return all([TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, PRACTICUM_TOKEN])
 
 
 def main():
-    """Основная логика работы бота. Делает запрос к API. Проверяет ответ.
+    """
+    Основная логика работы бота. Делает запрос к API. Проверяет ответ.
     Если есть обновления — получает статус работы из обновления и
-    отправляет сообщение в Telegram. Ждет 600 сек. и сделает новый запрос."""
+    отправляет сообщение в Telegram. Ждет 600 сек. и сделает новый запрос.
+    """
     if not check_tokens():
         message = 'Обязательные переменные окружения отсутствуют'
         logger.critical(message)
