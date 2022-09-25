@@ -47,8 +47,8 @@ logger.addHandler(handler)
 
 def send_message(bot, message):
     """
-    Отправляет сообщение в Telegram чат,
-    определяемый переменной окружения TELEGRAM_CHAT_ID.
+    Отправляет сообщение в Telegram чат.
+    Чат определяется переменной окружения TELEGRAM_CHAT_ID.
     """
     try:
         bot.send_message(TELEGRAM_CHAT_ID, text=message)
@@ -76,8 +76,9 @@ def get_api_answer(current_timestamp):
 
 def check_response(response):
     """
-    Проверяет ответ API на корректность. Если ответ API соответствует
-    ожиданиям, то возвращает список домашних работ.
+    Проверяет ответ API на корректность.
+    Если ответ API соответствует ожиданиям,
+    то возвращает список домашних работ.
     """
     if not isinstance(response, dict):
         message = 'Response не является словарем'
@@ -118,10 +119,7 @@ def parse_status(homework):
 
 
 def check_tokens():
-    """
-    Проверяем доступность переменных окружения, которые необходимы
-    для работы программы.
-    """
+    """Проверяем доступность переменных окружения."""
     return all([TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, PRACTICUM_TOKEN])
 
 
