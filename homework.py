@@ -28,7 +28,7 @@ HOMEWORK_VERDICTS = {
 }
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 handler = logging.StreamHandler()
 handler.setFormatter(
     logging.Formatter('%(asctime)s %(levelname)s %(name)s %(message)s'))
@@ -58,6 +58,7 @@ def get_api_answer(current_timestamp):
     params = {'from_date': timestamp}
     try:
         response = requests.get(ENDPOINT, headers=HEADERS, params=params)
+        return response.json()
     except Exception as error:
         message = f'Эндпоинт API-сервиса не доступен: {error}'
         logger.error(message)
@@ -66,7 +67,6 @@ def get_api_answer(current_timestamp):
         message = 'Ошибка при запросе к основному API'
         logger.error(message)
         raise exceptions.APIResponseStatusCodeException(message)
-    return response.json()
 
 
 def check_response(response):
