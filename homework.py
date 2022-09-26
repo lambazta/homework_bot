@@ -21,21 +21,11 @@ ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
 
-HOMEWORK_STATUSES = {
+HOMEWORK_VERDICTS = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
-
-# Проводим глобальную настройку логирования
-logging.basicConfig(
-    # Уровень логирования
-    level=logging.DEBUG,
-    # Файл в который будет сохраняться лог
-    filename=os.path.join(os.path.dirname(__file__), 'main.log'),
-    # Вид в котором будет сохранятся
-    format='%(asctime)s, %(levelname)s, %(message)s, %(name)s'
-)
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -54,8 +44,8 @@ def send_message(bot, message):
         bot.send_message(TELEGRAM_CHAT_ID, text=message)
         logger.info('Сообщение отправлено')
     except Exception as error:
-        logger.error(f'Ошибка при отправке сообщения: {error}')
-        raise f'Ошибка при отправке сообщения: {error}'
+        message = f'Ошибка при отправке сообщения: {error}'
+        logger.error(message)
 
 
 def get_api_answer(current_timestamp):
@@ -66,7 +56,12 @@ def get_api_answer(current_timestamp):
     """
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
-    response = requests.get(ENDPOINT, headers=HEADERS, params=params)
+    try:
+        response = requests.get(ENDPOINT, headers=HEADERS, params=params)
+    except Exception as error:
+        message = f'Эндпоинт API-сервиса не доступен: {error}'
+        logger.error(message)
+
     if response.status_code != HTTPStatus.OK:
         message = 'Ошибка при запросе к основному API'
         logger.error(message)
@@ -88,7 +83,7 @@ def check_response(response):
     if 'homeworks' not in response or 'current_date' not in response:
         message = 'Response имеет неправильный формат'
         logger.error(message)
-        raise message
+        raise Exception(message)
     if not isinstance(homeworks, list):
         message = 'homeworks не является списком'
         logger.error(message)
@@ -109,12 +104,12 @@ def parse_status(homework):
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
 
-    if homework_status not in HOMEWORK_STATUSES:
+    if homework_status not in HOMEWORK_VERDICTS:
         message = 'Неизвестный статус домашней работы'
         logger.error(message)
         raise exceptions.HomeworkStatusException(message)
 
-    verdict = HOMEWORK_STATUSES[homework_status]
+    verdict = HOMEWORK_VERDICTS[homework_status]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
@@ -132,7 +127,7 @@ def main():
     if not check_tokens():
         message = 'Обязательные переменные окружения отсутствуют'
         logger.critical(message)
-        raise exceptions.MissingRequiredTokenException(message)
+        raise SystemExit(message)
 
     bot = Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
