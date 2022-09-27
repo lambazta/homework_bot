@@ -28,11 +28,12 @@ HOMEWORK_VERDICTS = {
 }
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-handler = logging.StreamHandler()
-handler.setFormatter(
-    logging.Formatter('%(asctime)s %(levelname)s %(name)s %(message)s'))
-logger.addHandler(handler)
+if __name__ == '__main__':
+    logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
+    handler.setFormatter(
+        logging.Formatter('%(asctime)s %(levelname)s %(name)s %(message)s'))
+    logger.addHandler(handler)
 
 
 def send_message(bot, message):
@@ -46,6 +47,7 @@ def send_message(bot, message):
     except Exception as error:
         message = f'Ошибка при отправке сообщения: {error}'
         logger.error(message)
+        raise exceptions.MessageSendErrorException(message)
 
 
 def get_api_answer(current_timestamp):
@@ -58,16 +60,19 @@ def get_api_answer(current_timestamp):
     params = {'from_date': timestamp}
     try:
         response = requests.get(ENDPOINT, headers=HEADERS, params=params)
+        logger.info('Запрос к эндпоинту')
 
     except Exception as error:
         message = f'Эндпоинт API-сервиса не доступен: {error}'
         logger.error(message)
+        raise exceptions.EndpointUnreachableException(message)
 
     finally:
         if response.status_code != HTTPStatus.OK:
             message = 'Ошибка при запросе к основному API'
             logger.error(message)
             raise exceptions.APIResponseStatusCodeException(message)
+        logger.info('Успешный запрос')
         return response.json()
 
 
@@ -90,6 +95,7 @@ def check_response(response):
         message = 'homeworks не является списком'
         logger.error(message)
         raise TypeError(message)
+    logger.info('Получили список домашних работ')
     return homeworks
 
 
@@ -112,6 +118,7 @@ def parse_status(homework):
         raise exceptions.HomeworkStatusException(message)
 
     verdict = HOMEWORK_VERDICTS[homework_status]
+    logger.info('Вердикт получен')
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
@@ -139,8 +146,10 @@ def main():
         try:
             response = get_api_answer(current_timestamp)
             homeworks = check_response(response)
+            print(homeworks)
             for homework in homeworks:
                 message = parse_status(homework)
+                logger.info('Сообщение подготовлено')
                 if message != previous_message:
                     send_message(bot, message)
                     previous_message = message

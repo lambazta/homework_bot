@@ -13,6 +13,11 @@ class HomeworkStatusException(Exception):
         self.txt = text
 
 
-class HomeworkNameException(Exception):
+class EndpointUnreachableException(Exception):
+    def __init__(self, text):
+        self.txt = text
+
+
+class MessageSendErrorException(Exception):
     def __init__(self, text):
         self.txt = text
